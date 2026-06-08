@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Anvil — Product options that don't break</title>
+<link rel="icon" type="image/png" href="images/anvil-icon.png">
+<link rel="apple-touch-icon" href="images/anvil-icon.png">
+<meta name="description" content="Reliable product options for Shopify. Flat pricing, no order caps, and options that survive theme updates." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --paper:#F0E8D8;
+  --paper-soft:#F6F0E4;
+  --surface:#FBF7EE;
+  --nav:#E8DFCC;          /* sibling shade — close to paper, not identical */
+  --ink:#1C1A15;
+  --muted:#6A6356;
+  --line:rgba(28,26,21,.14);
+  --ember:#B5512A;
+  --ember-deep:#974019;
+  --char:#211F19;         /* the only dark area (footer) */
+  --char-text:#E8DFCC;
+  --serif:"Fraunces",Georgia,serif;
+  --sans:"Hanken Grotesk",system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:17px;
+  line-height:1.65;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{display:block;max-width:100%;height:auto}
+a{color:inherit;text-decoration:none}
+
+/* slim, themed scrollbar (not hidden — just quiet) */
+html{scrollbar-width:thin;scrollbar-color:rgba(181,81,42,.5) transparent}
+::-webkit-scrollbar{width:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(181,81,42,.45);border-radius:20px;border:2px solid var(--paper)}
+::-webkit-scrollbar-thumb:hover{background:rgba(181,81,42,.7)}
+
+/* grain */
+.grain{position:fixed;inset:0;pointer-events:none;z-index:120;opacity:.03;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+/* layout */
+.wrap{width:100%;max-width:1180px;margin:0 auto;padding:0 28px}
+section{position:relative}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ember);display:inline-block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.02em;line-height:1.04}
+p{color:var(--muted)}
+.ink{color:var(--ink)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:.5rem;font-weight:600;font-size:.95rem;
+  padding:.85rem 1.5rem;border-radius:999px;transition:transform .25s cubic-bezier(.2,.8,.2,1),background .25s,color .25s}
+.btn-primary{background:var(--ember);color:#fff}
+.btn-primary:hover{background:var(--ember-deep);transform:translateY(-2px)}
+.btn-ghost{color:var(--ink);border-bottom:1px solid var(--line);border-radius:0;padding:.3rem 0}
+.btn-ghost:hover{border-color:var(--ember);color:var(--ember)}
+
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;transition:background .4s,box-shadow .4s,padding .4s,border-color .4s;
+  border-bottom:1px solid transparent;padding:22px 0}
+.nav.scrolled{background:var(--nav);border-bottom-color:var(--line);padding:13px 0;box-shadow:0 1px 20px rgba(28,26,21,.05)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between}
+.brand{font-family:var(--serif);font-size:1.5rem;font-weight:500;letter-spacing:-.02em}
+.nav-links{display:flex;align-items:center;gap:2.2rem}
+.nav-links a.lnk{font-size:.92rem;font-weight:500;color:var(--ink);opacity:.78;transition:opacity .2s}
+.nav-links a.lnk:hover{opacity:1}
+.menu-btn{display:none;background:none;border:0;cursor:pointer;width:30px;height:22px;position:relative}
+.menu-btn span{position:absolute;left:0;width:100%;height:2px;background:var(--ink);transition:.3s;border-radius:2px}
+.menu-btn span:nth-child(1){top:0}.menu-btn span:nth-child(2){top:10px}.menu-btn span:nth-child(3){top:20px}
+.menu-btn.open span:nth-child(1){top:10px;transform:rotate(45deg)}
+.menu-btn.open span:nth-child(2){opacity:0}
+.menu-btn.open span:nth-child(3){top:10px;transform:rotate(-45deg)}
+
+/* hero */
+.hero{padding:170px 0 90px}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:60px;align-items:center}
+.hero h1{font-size:clamp(3rem,6.2vw,5.6rem);font-weight:300}
+.hero .line{overflow:hidden;display:block}
+.hero .line>span{display:block}
+.hero .lede{margin:1.6rem 0 2.2rem;font-size:1.15rem;max-width:30ch;color:var(--muted)}
+.hero .lede b{color:var(--ink);font-weight:600}
+.hero-actions{display:flex;align-items:center;gap:1.8rem;flex-wrap:wrap}
+.hero-figure{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;will-change:transform}
+.hero-figure img{width:100%;height:120%;object-fit:cover;position:absolute;top:-10%;left:0;will-change:transform}
+.hero-figure .frame{position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);border-radius:14px;z-index:2}
+
+/* section heading block */
+.sec{padding:100px 0}
+.sec-head{max-width:46ch;margin-bottom:60px}
+.sec-head h2{font-size:clamp(2rem,4vw,3.1rem);margin:.7rem 0 .9rem}
+.sec-head p{font-size:1.08rem}
+
+/* problem rows */
+.rows{border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:.7fr 1.3fr 1.3fr;gap:36px;padding:34px 0;border-bottom:1px solid var(--line);align-items:start}
+.row h3{font-size:1.4rem}
+.row .lbl{font-size:.72rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;display:block}
+.row .old{color:var(--muted)}
+.row .new{color:var(--ink)}
+.row .new .lbl{color:var(--ember)}
+
+/* pillars */
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
+.pillar{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:38px 32px;transition:transform .4s,box-shadow .4s}
+.pillar:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(28,26,21,.07)}
+.pillar .ic{width:40px;height:40px;color:var(--ember);margin-bottom:22px}
+.pillar h3{font-size:1.55rem;margin-bottom:.7rem;font-weight:400}
+.pillar p{font-size:.98rem}
+
+/* steps */
+.step{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;padding:46px 0}
+.step:nth-child(even) .step-media{order:-1}
+.step .num{font-family:var(--serif);font-size:1rem;color:var(--ember);letter-spacing:.1em}
+.step h3{font-size:1.9rem;margin:.6rem 0 .9rem;font-weight:400}
+.step .meta{margin-top:1.3rem;font-size:.82rem;color:var(--muted);border-left:2px solid var(--ember);padding-left:.9rem;line-height:1.5}
+.step-media{aspect-ratio:4/3;border-radius:12px;background:var(--paper-soft);
+  border:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.step-media img{width:100%;height:100%;object-fit:cover;display:block}
+.step-media span{font-size:.78rem;color:var(--muted);text-align:center;padding:0 2rem;letter-spacing:.04em}
+
+/* makers band */
+.band{display:grid;grid-template-columns:1fr 1fr;gap:0;align-items:stretch;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+.band-media{position:relative;min-height:440px;overflow:hidden}
+.band-media img{position:absolute;inset:0;width:100%;height:115%;object-fit:cover;top:-7%}
+.band-text{background:var(--char);color:var(--char-text);padding:64px 56px;display:flex;flex-direction:column;justify-content:center}
+.band-text h2{color:var(--char-text);font-size:clamp(1.8rem,3vw,2.6rem);margin-bottom:1.1rem}
+.band-text p{color:rgba(232,223,203,.72)}
+
+/* pricing */
+.prices{display:grid;grid-template-columns:1fr 1fr;gap:30px;max-width:840px;margin:0 auto}
+.price{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:42px 38px}
+.price.feature{background:var(--char);color:var(--char-text);border-color:var(--char)}
+.price .tier{font-size:.74rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ember)}
+.price .amt{font-family:var(--serif);font-size:3.2rem;font-weight:300;margin:.5rem 0 .2rem;line-height:1}
+.price .amt small{font-size:1rem;font-family:var(--sans);color:var(--muted)}
+.price.feature .amt small{color:rgba(232,223,203,.6)}
+.price ul{list-style:none;margin:1.6rem 0 2rem;display:flex;flex-direction:column;gap:.7rem}
+.price li{font-size:.95rem;display:flex;gap:.6rem;align-items:flex-start;color:var(--muted)}
+.price.feature li{color:rgba(232,223,203,.85)}
+.price li::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--ember);margin-top:.55rem}
+.price .btn{width:100%;justify-content:center}
+.price.feature .btn-primary{background:var(--ember)}
+.founding{text-align:center;margin-top:26px;font-size:.92rem;color:var(--muted)}
+.founding b{color:var(--ink)}
+
+/* faq */
+.faq{max-width:760px;margin:0 auto;border-top:1px solid var(--line)}
+.q{border-bottom:1px solid var(--line)}
+.q button{width:100%;background:none;border:0;cursor:pointer;text-align:left;padding:26px 0;display:flex;
+  justify-content:space-between;align-items:center;gap:2rem;font-family:var(--serif);font-size:1.25rem;color:var(--ink)}
+.q .plus{flex:none;width:22px;height:22px;position:relative;transition:transform .35s}
+.q .plus::before,.q .plus::after{content:"";position:absolute;background:var(--ember);transition:.35s}
+.q .plus::before{top:50%;left:0;width:100%;height:2px;transform:translateY(-50%)}
+.q .plus::after{left:50%;top:0;height:100%;width:2px;transform:translateX(-50%)}
+.q.open .plus{transform:rotate(135deg)}
+.q .ans{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.25,1,.5,1)}
+.q .ans p{padding:0 0 26px;font-size:1rem;max-width:60ch}
+
+/* footer */
+.foot{background:var(--char);color:var(--char-text);padding:70px 0 40px;margin-top:40px}
+.foot .wrap{display:flex;justify-content:space-between;align-items:flex-start;gap:40px;flex-wrap:wrap}
+.foot .brand{color:var(--char-text)}
+.foot .tag{color:rgba(232,223,203,.6);max-width:30ch;margin-top:.8rem;font-size:.95rem}
+.foot-links{display:flex;gap:3rem;flex-wrap:wrap}
+.foot-links a{color:rgba(232,223,203,.78);font-size:.92rem;display:block;margin-bottom:.7rem}
+.foot-links a:hover{color:var(--ember)}
+.foot-bottom{border-top:1px solid rgba(232,223,203,.14);margin-top:46px;padding-top:24px;font-size:.82rem;color:rgba(232,223,203,.5)}
+
+/* reveal defaults (JS adds .in) */
+[data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .9s cubic-bezier(.2,.8,.2,1),transform .9s cubic-bezier(.2,.8,.2,1)}
+[data-reveal].in{opacity:1;transform:none}
+
+/* mobile menu panel */
+.mobile-menu{position:fixed;inset:0;z-index:99;background:var(--paper);display:flex;flex-direction:column;
+  justify-content:center;gap:1.4rem;padding:40px;transform:translateX(100%);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.mobile-menu.open{transform:none}
+.mobile-menu a{font-family:var(--serif);font-size:2rem;color:var(--ink)}
+.mobile-menu .btn{align-self:flex-start;margin-top:1rem}
+
+@media (max-width:880px){
+  body{font-size:16px}
+  .hero{padding:130px 0 60px}
+  .hero .wrap{grid-template-columns:1fr;gap:40px}
+  .hero-figure{aspect-ratio:16/11;order:2}
+  .nav-links{display:none}
+  .menu-btn{display:block}
+  .sec{padding:64px 0}
+  .sec-head{margin-bottom:38px}
+  .row{grid-template-columns:1fr;gap:14px;padding:26px 0}
+  .row h3{font-size:1.3rem}
+  .pillars{grid-template-columns:1fr;gap:18px}
+  .pillar{padding:30px 26px}
+  .step{grid-template-columns:1fr;gap:24px;padding:30px 0}
+  .step:nth-child(even) .step-media{order:0}
+  .band{grid-template-columns:1fr}
+  .band-media{min-height:280px}
+  .band-text{padding:42px 32px}
+  .prices{grid-template-columns:1fr;gap:18px}
+  .foot .wrap{flex-direction:column;gap:30px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  [data-reveal]{opacity:1!important;transform:none!important}
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <div class="wrap">
+    <a href="#top" class="brand">Anvil</a>
+    <div class="nav-links">
+      <a class="lnk" href="#problem">Why Anvil</a>
+      <a class="lnk" href="#how">How it works</a>
+      <a class="lnk" href="#pricing">Pricing</a>
+      <a class="lnk" href="#faq">FAQ</a>
+      <a class="btn btn-primary" href="#pricing">Add to Shopify</a>
+    </div>
+    <button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#problem">Why Anvil</a>
+  <a href="#how">How it works</a>
+  <a href="#pricing">Pricing</a>
+  <a href="#faq">FAQ</a>
+  <a class="btn btn-primary" href="#pricing">Add to Shopify</a>
+</div>
+
+<!-- HERO -->
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="eyebrow" data-hero="0">Product options for Shopify</span>
+      <h1>
+        <span class="line"><span data-hero="1">Product options</span></span>
+        <span class="line"><span data-hero="2">that don't</span></span>
+        <span class="line"><span data-hero="3"><em style="font-style:italic;color:var(--ember)">break.</em></span></span>
+      </h1>
+      <p class="lede" data-hero="4">Custom fields that survive theme updates, a <b>flat price with no order caps</b>, and bulk-apply across every product in one click.</p>
+      <div class="hero-actions" data-hero="5">
+        <a class="btn btn-primary" href="#pricing">Add to Shopify</a>
+        <a class="btn btn-ghost" href="#how">See how it works</a>
+      </div>
+    </div>
+    <figure class="hero-figure" id="heroFig">
+      <img src="images/engraving.jpg" alt="A craftsperson hand-engraving scrollwork into a polished metal blade" id="heroImg">
+      <span class="frame"></span>
+    </figure>
+  </div>
+</header>
+
+<!-- PROBLEM -->
+<section class="sec" id="problem">
+  <div class="wrap">
+    <div class="sec-head" data-reveal>
+      <span class="eyebrow">Why Anvil exists</span>
+      <h2>Most options apps break exactly when it matters.</h2>
+      <p>The complaints are always the same three. Here's how Anvil is built differently.</p>
+    </div>
+    <div class="rows">
+      <div class="row" data-reveal>
+        <h3>Theme updates</h3>
+        <div class="old"><span class="lbl">The usual way</span>Options are injected with fragile scripts that vanish the moment you update, preview, or switch a theme.</div>
+        <div class="new"><span class="lbl">The Anvil way</span>Built on Shopify's native Theme App Extensions. Options live in isolated app blocks that survive theme changes.</div>
+      </div>
+      <div class="row" data-reveal>
+        <h3>Order caps</h3>
+        <div class="old"><span class="lbl">The usual way</span>Plans cap how many orders you can take, then charge more — or cut you off — right as you start selling.</div>
+        <div class="new"><span class="lbl">The Anvil way</span>One flat price. Unlimited orders. We don't tax you for succeeding.</div>
+      </div>
+      <div class="row" data-reveal>
+        <h3>Repetitive setup</h3>
+        <div class="old"><span class="lbl">The usual way</span>Adding the same option to your catalog means editing products one at a time, by hand.</div>
+        <div class="new"><span class="lbl">The Anvil way</span>Group fields into a set and apply it to a whole collection, tag, or your entire store in one click.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PILLARS -->
+<section class="sec" style="background:var(--paper-soft)">
+  <div class="wrap">
+    <div class="sec-head" data-reveal>
+      <span class="eyebrow">What you get</span>
+      <h2>Three things, done properly.</h2>
+    </div>
+    <div class="pillars">
+      <div class="pillar" data-reveal>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z"/></svg>
+        <h3>Reliable</h3>
+        <p>Custom options render inside sandboxed app blocks, so they keep working through theme updates, previews, and swaps — no reinstalling, no disappearing fields.</p>
+      </div>
+      <div class="pillar" data-reveal>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        <h3>Flat priced</h3>
+        <p>One honest monthly fee whether you process ten customizations or ten thousand. No order limits, no percentage cuts, no surprise surcharges at peak season.</p>
+      </div>
+      <div class="pillar" data-reveal>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 6h18M3 12h18M3 18h18"/><circle cx="7" cy="6" r="1.6" fill="currentColor"/><circle cx="14" cy="12" r="1.6" fill="currentColor"/><circle cx="10" cy="18" r="1.6" fill="currentColor"/></svg>
+        <h3>Bulk-apply</h3>
+        <p>Build a set of fields once, then assign it to a single product, a tag, or your entire catalog in one click — no copy-paste, no per-product setup.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="sec" id="how">
+  <div class="wrap">
+    <div class="sec-head" data-reveal>
+      <span class="eyebrow">How it works</span>
+      <h2>Three steps, no theme code.</h2>
+    </div>
+
+    <div class="step" data-reveal>
+      <div>
+        <span class="num">01</span>
+        <h3>Build your option set</h3>
+        <p>Add the fields you need — text boxes, numbers, dropdowns, radio buttons, checkboxes, and dates — and group them into a reusable set right from the dashboard.</p>
+        <div class="meta">Field types: text, number, dropdown, radio, checkbox, date.</div>
+      </div>
+      <div class="step-media"><img src="images/shot-admin.png" alt="Anvil option sets dashboard"></div>
+    </div>
+
+    <div class="step" data-reveal>
+      <div>
+        <span class="num">02</span>
+        <h3>See it on your product pages</h3>
+        <p>Apply the set to a single product, a tag, or your whole catalog in one click. The fields render automatically on the storefront — no theme code to touch, ever.</p>
+        <div class="meta">Online Store 2.0 app blocks · no code · survives theme updates.</div>
+      </div>
+      <div class="step-media"><img src="images/shot-product.png" alt="Custom options rendered on a product page"></div>
+    </div>
+
+    <div class="step" data-reveal>
+      <div>
+        <span class="num">03</span>
+        <h3>Get it on every order</h3>
+        <p>Customer selections ride into the cart and checkout as native line-item properties, so they land on the order exactly as entered — nothing to copy by hand.</p>
+        <div class="meta">Native cart line items · checkout-ready · no manual data entry.</div>
+      </div>
+      <div class="step-media"><img src="images/shot-cart.png" alt="Selections saved to the cart and order"></div>
+    </div>
+  </div>
+</section>
+
+<!-- MAKERS BAND -->
+<section class="sec">
+  <div class="wrap">
+    <div class="band" data-reveal>
+      <div class="band-media"><img src="images/marmalade.jpg" alt="Maker wrapping small-batch jars in paper and tying them with string" id="bandImg"></div>
+      <div class="band-text">
+        <h2>Made for made-to-order.</h2>
+        <p>Engravers, embroiderers, small-batch makers, print-on-demand shops — anyone whose products need a customer's input before they're made. Anvil keeps that input reliable, from the product page all the way to the order.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="sec" id="pricing" style="background:var(--paper-soft)">
+  <div class="wrap">
+    <div class="sec-head" data-reveal style="text-align:center;margin-left:auto;margin-right:auto">
+      <span class="eyebrow">Pricing</span>
+      <h2>Flat, honest, no caps.</h2>
+    </div>
+    <div class="prices">
+      <div class="price" data-reveal>
+        <span class="tier">Free</span>
+        <div class="amt">$0</div>
+        <ul>
+          <li>Up to 3 option sets</li>
+          <li>All field types</li>
+          <li>Applies to unlimited products</li>
+          <li>Survives theme updates</li>
+        </ul>
+        <a class="btn btn-primary" href="#" style="background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)">Start free</a>
+      </div>
+      <div class="price feature" data-reveal>
+        <span class="tier">Pro <span style="font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,.2);padding:.15rem .5rem;border-radius:99px;margin-left:.35rem;vertical-align:middle">Coming soon</span></span>
+        <div class="amt">$14.99<small>/mo flat</small></div>
+        <ul>
+          <li>Unlimited option sets</li>
+          <li>Bulk-apply across your catalog</li>
+          <li>Per-option upcharge pricing <span style="opacity:.7;font-size:.85em">(soon)</span></li>
+          <li>Conditional show/hide logic <span style="opacity:.7;font-size:.85em">(soon)</span></li>
+          <li><b style="color:#fff">Unlimited orders — no caps</b></li>
+        </ul>
+        <a class="btn btn-primary" href="#">Coming soon</a>
+      </div>
+    </div>
+    <p class="founding" data-reveal>Founding offer — the first <b>50 stores</b> lock Pro at <b>$9.99/mo for life.</b></p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="sec" id="faq">
+  <div class="wrap">
+    <div class="sec-head" data-reveal style="text-align:center;margin-left:auto;margin-right:auto">
+      <span class="eyebrow">Questions</span>
+      <h2>Good to know.</h2>
+    </div>
+    <div class="faq" data-reveal>
+      <div class="q"><button>Do I have to edit my theme's code?<span class="plus"></span></button>
+        <div class="ans"><p>No. Anvil installs as a Shopify Theme App Extension — you drop an app block onto your product page from the theme editor. Your theme files stay untouched, which is exactly why options don't break when you update.</p></div></div>
+      <div class="q"><button>Are there hidden fees during busy periods?<span class="plus"></span></button>
+        <div class="ans"><p>No. Pro is a flat monthly price. Whether it's a quiet week or Black Friday, your cost is the same regardless of how many orders you take.</p></div></div>
+      <div class="q"><button>What happens if I switch themes?<span class="plus"></span></button>
+        <div class="ans"><p>Because options live in app blocks rather than injected scripts, they carry over cleanly. You re-add the block on the new theme and your configured sets are still there.</p></div></div>
+      <div class="q"><button>Can I charge extra for certain options?<span class="plus"></span></button>
+        <div class="ans"><p>Per-option upcharges are on the roadmap and arrive with the Pro plan shortly after launch. The current version focuses on capturing every option reliably on the order; pricing add-ons come next.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div class="wrap">
+    <div>
+      <div class="brand">Anvil</div>
+      <p class="tag">Reliable product options for Shopify. Flat price, no caps, never breaks.</p>
+    </div>
+    <div class="foot-links">
+      <div>
+        <a href="#problem">Why Anvil</a>
+        <a href="#how">How it works</a>
+        <a href="#pricing">Pricing</a>
+      </div>
+      <div>
+        <a href="#faq">FAQ</a>
+        <a href="#">Support</a>
+        <a href="#">Privacy</a>
+      </div>
+    </div>
+  </div>
+  <div class="wrap"><div class="foot-bottom">© 2026 Anvil. Not affiliated with Shopify Inc.</div></div>
+</footer>
+
+<!-- libs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- Lenis smooth scroll (single global instance) + GSAP sync ---- */
+  var lenis = null;
+  if(!reduce && window.Lenis){
+    lenis = new Lenis({ duration:1.1, easing:function(t){return Math.min(1,1.001-Math.pow(2,-10*t));}, smoothWheel:true });
+    if(window.gsap && window.ScrollTrigger){
+      lenis.on('scroll', ScrollTrigger.update);
+      gsap.ticker.add(function(time){ lenis.raf(time*1000); });
+      gsap.ticker.lagSmoothing(0);
+    } else {
+      function raf(t){ lenis.raf(t); requestAnimationFrame(raf); } requestAnimationFrame(raf);
+    }
+  }
+
+  /* anchor links -> lenis scroll */
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener('click', function(e){
+      var id = a.getAttribute('href'); if(id.length<2) return;
+      var el = document.querySelector(id); if(!el) return;
+      e.preventDefault();
+      closeMenu();
+      if(lenis){ lenis.scrollTo(el, {offset:-70}); }
+      else { el.scrollIntoView({behavior:'smooth'}); }
+    });
+  });
+
+  /* ---- nav state ---- */
+  var nav = document.getElementById('nav');
+  function onScroll(){ if(window.scrollY>40) nav.classList.add('scrolled'); else nav.classList.remove('scrolled'); }
+  onScroll(); window.addEventListener('scroll', onScroll, {passive:true});
+
+  /* ---- mobile menu ---- */
+  var mb = document.getElementById('menuBtn'), mm = document.getElementById('mobileMenu');
+  function closeMenu(){ mb.classList.remove('open'); mm.classList.remove('open'); }
+  mb.addEventListener('click', function(){ mb.classList.toggle('open'); mm.classList.toggle('open'); });
+
+  /* ---- FAQ accordion ---- */
+  document.querySelectorAll('.q button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var q = btn.parentElement, ans = q.querySelector('.ans'), open = q.classList.contains('open');
+      document.querySelectorAll('.q').forEach(function(o){ o.classList.remove('open'); o.querySelector('.ans').style.maxHeight=null; });
+      if(!open){ q.classList.add('open'); ans.style.maxHeight = ans.scrollHeight+'px'; }
+    });
+  });
+
+  if(reduce || !window.gsap){
+    document.querySelectorAll('[data-reveal]').forEach(function(el){el.classList.add('in');});
+    document.querySelectorAll('[data-hero]').forEach(function(el){el.style.opacity=1;el.style.transform='none';});
+    return;
+  }
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ---- hero load timeline ---- */
+  gsap.set('[data-hero]', {yPercent:110, opacity:0});
+  gsap.set('[data-hero="0"],[data-hero="4"],[data-hero="5"]', {yPercent:0, y:18});
+  var tl = gsap.timeline({defaults:{ease:'power3.out', duration:.9}});
+  tl.to('[data-hero="0"]', {y:0, opacity:1, duration:.7})
+    .to('[data-hero="1"]', {yPercent:0, opacity:1}, '-=.35')
+    .to('[data-hero="2"]', {yPercent:0, opacity:1}, '-=.7')
+    .to('[data-hero="3"]', {yPercent:0, opacity:1}, '-=.7')
+    .to('[data-hero="4"]', {y:0, opacity:1, duration:.7}, '-=.4')
+    .to('[data-hero="5"]', {y:0, opacity:1, duration:.7}, '-=.5');
+
+  /* hero image reveal (clip + scale) */
+  gsap.fromTo('#heroImg', {clipPath:'inset(0 0 100% 0)', scale:1.12},
+    {clipPath:'inset(0 0 0% 0)', scale:1, duration:1.2, ease:'power3.out', delay:.2});
+
+  /* hero image parallax */
+  gsap.to('#heroImg', {yPercent:-8, ease:'none',
+    scrollTrigger:{trigger:'#heroFig', start:'top top', end:'bottom top', scrub:true}});
+
+  /* band image parallax */
+  gsap.to('#bandImg', {yPercent:-6, ease:'none',
+    scrollTrigger:{trigger:'.band', start:'top bottom', end:'bottom top', scrub:true}});
+
+  /* ---- generic reveals, throughout every section ---- */
+  document.querySelectorAll('[data-reveal]').forEach(function(el){
+    ScrollTrigger.create({ trigger:el, start:'top 86%', once:true,
+      onEnter:function(){ el.classList.add('in'); } });
+  });
+
+  /* step media subtle scale-in */
+  document.querySelectorAll('.step-media').forEach(function(m){
+    gsap.fromTo(m, {scale:.96}, {scale:1, duration:1, ease:'power2.out',
+      scrollTrigger:{trigger:m, start:'top 88%'}});
+  });
+})();
+</script>
+</body>
+</html>
